@@ -15,7 +15,10 @@ synsaveinstance(Options)
 ```
 # Differences From the Original
 - Fixed gethiddenproperty, in the original it uses UGCValidationService:GetPropertyValue instead. (Allows for terrain to save)
--
+- Added a counter at the end of the file to prevent overriding when writing to file names that already exist.
+  - EX:
+    - place 1 example.rbxlx
+    - place 1 example(2).rbxlx
 # Universal Syn Save Instance
 
 Or shortly USSI, a project aimed at resurrecting saveinstance function from Synapse X.<br />
