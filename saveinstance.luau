@@ -2034,14 +2034,30 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			end
 		end
 
+		local Filetype
 		if IsModel then
+			FileType = ".rbxmx"
 			placename = (
 				FilePath
 				or sanitizeFileName("model " .. PlaceName .. " " .. (ToSaveInstance or tmp[1] or game):GetFullName())
-			) .. ".rbxmx"
+			)
 		else
-			placename = (FilePath or sanitizeFileName("place " .. PlaceName)) .. ".rbxlx"
+			FileType = ".rbxlx"
+			placename = (FilePath or sanitizeFileName("place " .. PlaceName))
 		end
+
+		-- Simple loop to find an avbaible file name. Not the most elegant or optimized solution, this is the only repeat loop in the entire file, but it shouldn't impact performance unless you are saving with the same filename 1 million times.
+		local PlaceNameCounter = 1
+		local TempName
+		repeat
+			if PlaceNameCounter == 1 then
+				TempName = placename
+			else
+				TempName = placename .. "(" .. PlaceNameCounter .. ")"
+			end
+			PlaceNameCounter = PlaceNameCounter + 1
+		until not isfile(TempName .. FileType)
+		placename = TempName .. FileType
 
 		if GLOBAL_ENV[placename] then
 			-- warn("UniversalSynSaveInstance is already saving to this file")
