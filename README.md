@@ -19,6 +19,7 @@ synsaveinstance(Options)
   - EX:
     - place 1 example.rbxlx
     - place 1 example(2).rbxlx
+ - Better default executors for many options
 # Universal Syn Save Instance
 
 Or shortly USSI, a project aimed at resurrecting saveinstance function from Synapse X.<br />
