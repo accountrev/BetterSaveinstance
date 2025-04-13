@@ -62,6 +62,10 @@ local identify_executor = identifyexecutor or getexecutorname or whatexecutor
 
 local EXECUTOR_NAME = identify_executor and identify_executor() or ""
 
+local identify_executor_level = getthreadidentity or getidentity or getthreadcontext
+
+local EXECUTOR_LEVEL = identify_executor_level and identify_executor_level() or ""
+
 -- local cloneref = global_container.cloneref
 local gethiddenproperty = global_container.gethiddenproperty
 
@@ -1780,7 +1784,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 		IgnoreSharedStrings = EXECUTOR_NAME ~= "Wave" and EXECUTOR_NAME ~= "Potassium" and EXECUTOR_NAME ~= "Zenith" and EXECUTOR_NAME ~= "Seliware",
 		SharedStringOverwrite = false,
-		TreatUnionsAsParts = EXECUTOR_NAME == "Solara", -- TODO Temporary true (once removed, remove Note from docs too)
+		TreatUnionsAsParts = EXECUTOR_LEVEL == 3, -- not sure, based on an old discord message from wevn (the owner) that said unions couldn't be saved on level 3 execs. The server has been reset since then, so this can't be proven.
 		AlternativeWritefile = not ArrayToDict({ "WRD", "Xeno", "Zorara" })[EXECUTOR_NAME],
 
 		OptionsAliases = { -- You can't really modify these as a user
