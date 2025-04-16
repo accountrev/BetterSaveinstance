@@ -1782,7 +1782,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 		-- ! Risky
 
-		IgnoreSharedStrings = EXECUTOR_NAME ~= "Wave" and EXECUTOR_NAME ~= "Potassium" and EXECUTOR_NAME ~= "Zenith" and EXECUTOR_NAME ~= "Seliware",
+		IgnoreSharedStrings = EXECUTOR_NAME ~= "Wave" and EXECUTOR_NAME ~= "Potassium" and EXECUTOR_NAME ~= "Zenith" and EXECUTOR_NAME ~= "Seliware" and EXECUTOR_NAME ~= "Swift",
 		SharedStringOverwrite = false,
 		TreatUnionsAsParts = EXECUTOR_LEVEL == 3, -- not sure, based on an old discord message from wevn (the owner) that said unions couldn't be saved on level 3 execs. The server has been reset since then, so this can't be proven.
 		AlternativeWritefile = not ArrayToDict({ "WRD", "Xeno", "Zorara" })[EXECUTOR_NAME],
