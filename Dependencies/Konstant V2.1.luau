@@ -12,7 +12,7 @@ end;
 local l_getscriptbytecode_0 = getscriptbytecode;
 local l_getscripthash_0 = getscripthash;
 local _ = getgenv;
-local l_rconsoleprint_0 = rconsoleprint;
+--local l_rconsoleprint_0 = rconsoleprint;
 local v14 = Vector3 or {
     new = function(v11, v12, v13)
         return {
