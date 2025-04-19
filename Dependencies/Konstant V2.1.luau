@@ -84,10 +84,10 @@ local l_clock_0 = os.clock;
 local v26 = elapsedTime or l_clock_0;
 local v27 = v26();
 local v28 = game ~= nil;
-local v29 = l_rconsoleprint_0 or print;
+--local v29 = l_rconsoleprint_0 or print;
 local function v33(v30, v31, v32)
     if v26() - v27 >= 0.016666666666666666 then
-        v29("[" .. v30 .. "/" .. v31 .. "] " .. string.format("%.1f", math.floor(v30 / v31 * 1000 + 0.5) / 10) .. "% done with func `" .. (v32 or "<main>") .. "`");
+       -- v29("[" .. v30 .. "/" .. v31 .. "] " .. string.format("%.1f", math.floor(v30 / v31 * 1000 + 0.5) / 10) .. "% done with func `" .. (v32 or "<main>") .. "`");
         if v23 and v28 then
             v23();
         end;
