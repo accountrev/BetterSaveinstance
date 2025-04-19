@@ -19,6 +19,9 @@ synsaveinstance(Options)
   - EX:
     - place 1 example.rbxlx
     - place 1 example(2).rbxlx
+ - Custom Decompiler (decomptype)
+    - Uses a locally hosted version of Konstant 2.1 for blazingly fast speed
+    - Enabled when there is no decompiler, or with the option decomptype = "custom"
  - Better default executors for many options
 # Universal Syn Save Instance
 
