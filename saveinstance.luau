@@ -233,11 +233,13 @@ do -- * Load Region of Déjà Vu
 	end
 end
 
--- local custom_decompiler
-
--- if getscriptbytecode then
--- end
-
+if getscriptbytecode then
+	if (decompile == nil and decomptype == "") or decomptype == "custom" then
+		local url = "https://raw.githubusercontent.com/Devraj2010isme/BetterSaveinstance/refs/heads/main/Dependencies/Konstant%20V2.1.luau"
+		local konstant = loadstring(game:HttpGet(url, true))()
+		GLOBAL_ENV.decompile = konstant.decompile
+	end
+end
 local SharedStrings = {}
 local SharedString_identifiers = setmetatable({
 	identifier = 1e15, -- 1 quadrillion, up to 9.(9) quadrillion, in theory this shouldn't ever run out and be enough for all sharedstrings ever imaginable
@@ -1711,7 +1713,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		mode = "optimized",
 		noscripts = false,
 		scriptcache = true,
-		-- decomptype = "",
+		decomptype = "",
 		timeout = 10,
 		-- * New:
 		__DEBUG_MODE = false,
@@ -2287,7 +2289,13 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			end
 		end
 	end
-
+	if getscriptbytecode then
+		if (decompile == nil and OPTIONS.decomptype == "") or OPTIONS.decomptype == "custom" then
+			local url = "https://raw.githubusercontent.com/Devraj2010isme/BetterSaveinstance/refs/heads/main/Dependencies/Konstant%20V2.1.luau"
+			local konstant = loadstring(game:HttpGet(url, true))()
+			GLOBAL_ENV.decompile = konstant.decompile
+		end
+	end
 	do
 		local Decompiler = decompile --OPTIONS.decomptype == "custom" and custom_decompiler or decompile or custom_decompiler
 
