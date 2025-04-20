@@ -2984,7 +2984,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				if IsolateLocalPlayerCharacter then
 					local LocalPlayerCharacter = LocalPlayer.Character
 					if LocalPlayerCharacter then
-						save_extra("LocalPlayer Character", LocalPlayerCharacter:GetChildren())
+						save_extra("LocalPlayer Character", LocalPlayerCharacter:GetChildren(), "Model")
 					end
 				end
 			end
