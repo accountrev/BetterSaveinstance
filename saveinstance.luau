@@ -233,13 +233,6 @@ do -- * Load Region of Déjà Vu
 	end
 end
 
-if getscriptbytecode then
-	if (decompile == nil and decomptype == "") or decomptype == "custom" then
-		local url = "https://raw.githubusercontent.com/Devraj2010isme/BetterSaveinstance/refs/heads/main/Dependencies/Konstant%20V2.1.luau"
-		local konstant = loadstring(game:HttpGet(url, true))()
-		GLOBAL_ENV.decompile = konstant.decompile
-	end
-end
 local SharedStrings = {}
 local SharedString_identifiers = setmetatable({
 	identifier = 1e15, -- 1 quadrillion, up to 9.(9) quadrillion, in theory this shouldn't ever run out and be enough for all sharedstrings ever imaginable
@@ -1626,10 +1619,11 @@ local GLOBAL_ENV = getgenv and getgenv() or _G or shared
 --- @field mode string -- Valid modes: full, optimized, scripts. Change this to invalid mode like "invalid" if you only want ExtraInstances. "optimized" mode is **NOT** supported with *@Object* option. ___Default:___ `"optimized"`
 --- @field noscripts boolean -- ___Aliases:___ `Decompile`. ___Default:___ false
 --- @field scriptcache boolean -- ___Default:___ true
---- @field decomptype string -- * Deprecated. ___Default:___ Uses your executor's decompiler, if available.
+--- @field decomptype string -- "custom" - for a built-in custom decompiler. ___Default:___ Your executor's decompiler, if available. Otherwise uses "custom" if not.
 --- @field timeout number -- If the decompilation run time exceeds this value it gets cancelled. Set to -1 to disable timeout (unreliable). ***Aliases***: `DecompileTimeout`. ___Default:___ 10
 --- @field DecompileJobless boolean -- Includes already decompiled code in the output. No new scripts are decompiled. ___Default:___ false
 --- @field SaveBytecode boolean -- Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later. ___Default:___ false
+--- @field SaveBytecodeIfDecompilerFails boolean -- Includes bytecode in the output ONLY in these cases: if decompiler fails, if noscripts is enabled, if decompiler isn't found. Useful if you wish to be able to decompile it yourself later. ___Default:___ false
 --- .DecompileIgnore {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- * Ignores match & it's descendants by default. To Ignore only the instance itself set the value to `= false`. Examples: "Chat", - Matches any instance with "Chat" ClassName, Players = {"MyPlayerName"} - Matches "Players" Class AND "MyPlayerName" Name ONLY, `workspace` - matches Instance by reference, `[workspace] = false` - matches Instance by reference and only ignores the instance itself and not it's descendants. ___Default:___ {TextChatService}
 --- .IgnoreList {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- Structure is similar to **@DecompileIgnore** except `= false` meaning if you ignore one instance it will automatically ignore it's descendants. ___Default:___ {CoreGui, CorePackages}
 --- .ExtraInstances {Instance} -- If used with any invalid mode (like "invalidmode") it will only save these instances. ___Default:___ {}
@@ -1732,7 +1726,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		},
 		IgnoreDefaultPlayerScripts = EXECUTOR_NAME ~= "Wave" and true,
 		SaveBytecode = false,
-
+		SaveBytecodeIfDecompilerFails = false,
 		IgnoreProperties = {},
 
 		IgnoreList = { "CoreGui", "CorePackages" },
@@ -2280,7 +2274,10 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 
 	local SaveBytecode
-	if OPTIONS.SaveBytecode and getscriptbytecode then
+	if OPTIONS.SaveBytecode then
+		OPTIONS.SaveBytecodeIfDecompilerFails = false
+	end
+	if (OPTIONS.SaveBytecode or OPTIONS.SaveBytecodeIfDecompilerFails) and getscriptbytecode then
 		SaveBytecode = function(script)
 			local s, bytecode = getbytecode(script)
 
@@ -2311,8 +2308,15 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		-- end
 
 		if OPTIONS.noscripts then
-			ldecompile = function()
-				return "-- Decompiling is disabled"
+			ldecompile = function(script)
+				local output = "-- Decompiling is disabled"
+					if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode then
+						local bc = SaveBytecode(script)
+						if bc then
+							output = bc..output
+						end
+					end
+				return output
 			end
 		elseif Decompiler then
 			local decomp = construct_TimeoutHandler(Timeout, Decompiler, "Decompiler timed out")
@@ -2369,8 +2373,15 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				return output
 			end
 		else
-			ldecompile = function()
-				return "-- Your Executor does NOT have a Decompiler"
+			ldecompile = function(script)
+				local output = "-- Your Executor does NOT have a Decompiler"
+					if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode then
+						local bc = SaveBytecode(script)
+						if bc then
+							output = bc..output
+						end
+					end
+				return output
 			end
 		end
 	end
@@ -2874,7 +2885,20 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 												value = "-- [FilteringEnabled] Server Scripts are IMPOSSIBLE to save" -- TODO: Could be not just server scripts in the future
 											else
 												value = ldecompile(instance)
-												if SaveBytecode then
+												
+												local DecompilerFailedMessages = {"Failed to decompile", "Something went wrong when decompiling", "Decompilation failed", "Update the decompiling script", "Check decompiling options for errors"} -- Some from Konstant, Oracle and USSI. If you have anymore decompiler errors please submit them.
+												if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode then
+													for p in next, ArrayToDict(DecompilerFailedMessages) do
+														if string.find(value, p, 1, true) then
+															local bc = SaveBytecode(instance)
+															if bc then
+																value = bc..value
+															end
+															break
+														end
+													end
+												end
+												if OPTIONS.SaveBytecode and SaveBytecode then
 													local output = SaveBytecode(instance)
 													if output then
 														value = output .. value
