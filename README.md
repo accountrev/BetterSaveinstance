@@ -22,6 +22,10 @@ synsaveinstance(Options)
 - Custom Decompiler (decomptype)
     - Uses a locally hosted version of Konstant 2.1 for blazingly fast speed
     - Enabled when there is no decompiler, or with the option decomptype = "custom"
+- Option SaveBytecodeIfDecompilerFails
+  - Used to exist in old USSI
+  - View docs for more info
+  - Default: false 
 - Better default executors for many options
   - IgnoreSharedStrings is disabled on Potassium, Seliware, Zenith and Swift.
   - TreatUnionsAsParts is enabled on all level 3 execs.
@@ -45,147 +49,151 @@ Reason: Many Executors fail miserably at providing good user experience when it 
 # Options Documentation
 > [!NOTE]
 All options are case insensitive.
-- __DEBUG_MODE: boolean
+- __DEBUG_MODE: `boolean`
   - This will print debug logs to console about unusual scenarios. Recommended to enable if you wish to help us improve our products and find bugs / issues with it!
   - Default: false
-- ReadMe: boolean
+- ReadMe: `boolean`
   - Includes a script parented to game in the file, containing credits, fixes, and the options used to generate the file.
   - Default: true
-- SafeMode: boolean
+- SafeMode: `boolean`
   - Kicks you before Saving, which prevents you from being detected in any game.
   - Default: false
-- ShutdownWhenDone: boolean
+- ShutdownWhenDone: `boolean`
   - Shuts the game down after saveinstance is finished.
   - Default: false
-- AntiIdle: boolean
+- AntiIdle: `boolean`
   - Prevents the 20-minute-Idle Kick.
   - Default: true
-- Anonymous: boolean
+- Anonymous: `boolean`
   - Cleans the file of any info related to your account like: Name, UserId.
   - This is useful for some games that might store that info in GUIs or other Instances.
   - Might potentially mess up parts of strings that contain characters that match your Name or parts of numbers that match your UserId.
   - Default: false
-- ShowStatus: boolean
+- ShowStatus: `boolean`
   - Shows what Saveinstance is currently doing in a GUI.
   - Default: true
-- Callback: function
+- Callback: `function`
   - If set, the serialized data will be sent to the callback function instead of to file.
   - Default: false
-- mode: string
+- mode: `string`
   - Valid modes: full, optimized, scripts. Change this to invalid mode like "invalid" if you only want ExtraInstances. "optimized" mode is NOT supported with @Object option.
   - Default: "optimized"
-- noscripts: boolean
+- noscripts: `boolean`
   - Disables scripts from decompiling.
   - Aliases: Decompile (inverse)
   - Default: false
-- scriptcache: boolean
+- scriptcache: `boolean`
   - Caches decompiled scripts, so if a script with the same bytecode appears in a game multiple times, it only needs to be decompiled once.
   - Default: true
-- decomptype: string
+- decomptype: `string`
   - "custom" - for a built-in custom decompiler.
   - Uses Konstant 2.1, locally hosted instead of the API to increase speed. ([Konstant Discord Server](https://discord.gg/wyButjTMhM), [Konstant Decompiled Source Code](https://raw.githubusercontent.com/Devraj2010isme/BetterSaveinstance/refs/heads/main/Dependencies/Konstant%20V2.1.luau))
   - Default: Your executor's decompiler, if available. Otherwise uses "custom" if not.
-- timeout: number
+- timeout: `number`
   - If the decompilation run time exceeds this value it gets cancelled.
   - Set to -1 to disable timeout (unreliable).
   - Aliases: DecompileTimeout
   - Default: 10
-- DecompileJobless: boolean
+- DecompileJobless: `boolean`
   - Includes already decompiled code in the output. No new scripts are decompiled.
   - Enables the option ScriptCache
   - Default: false
-- SaveBytecode: boolean
+- SaveBytecode: `boolean`
   -  Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later.
   -  Default: false
-- DecompileIgnore: {Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}
+- SaveBytecodeIfDecompilerFails: `boolean`
+  - Includes bytecode in the output ONLY in these cases: if the decompiler fails (works on most decompilers), if noscripts is enabled, or if the decompiler isn't found. Useful if you wish to be able to decompile it yourself later.
+  - Option Savebytecode takes priority over this. 
+  - Default: false
+- DecompileIgnore: `{Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}`
   - Ignores match & its descendants by default. To Ignore only the instance itself set the value to = false. Examples: "Chat", - Matches any instance with "Chat" ClassName, Players = {"MyPlayerName"} - Matches "Players" Class AND "MyPlayerName" Name ONLY, workspace - matches Instance by reference, [workspace] = false - matches Instance by reference and only ignores the instance itself and not its descendants.
   - Default: {TextChatService}
-- IgnoreList: {Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}
+- IgnoreList: `{Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}`
   - Structure is similar to @DecompileIgnore except = false meaning if you ignore one instance it will automatically ignore its descendants.
   - Default: {CoreGui, CorePackages}
-- ExtraInstances: {Instance}
+- ExtraInstances: `{Instance}`
   - If used with any invalid mode (like "invalidmode") it will only save these instances.
   - Default: {}
-- IgnoreProperties: table
+- IgnoreProperties: `table`
   - Ignores properties by Name.
   - Default: {}
-- SaveCacheInterval: number
+- SaveCacheInterval: `number`
   - The less the value the more often it saves, but that would mean less performance due to constantly saving.
   - Default: 0x1600 * 10
-- FilePath: string
+- FilePath: `string`
   - Must only contain the name of the file, no file extension.
   - EX: FilePath = "Place" not "Place.rbxlx"
   - Aliases: FileName
   - Default: false
-- Object: Instance
+- Object: `Instance`
   - If provided, saves as .rbxmx (Model file) instead. If Object is game, it will be saved as a .rbxl file. MUST BE AN INSTANCE REFERENCE, FOR EXAMPLE - game.Workspace. "optimized" mode is NOT supported with this option. If IsModel is set to false then Object specified here will be saved as a place file.
   - Default: false
-- IsModel: boolean
+- IsModel: `boolean`
   - Saves the file as a model (.rbxmx).
   - If Object is specified then sets to true automatically, unless you set it to false.
   - Default: false
-- NilInstances: boolean
+- NilInstances: `boolean`
   - Save instances that aren't parented (parented to nil) in the folder game["Nil Instances"]
   - Enables SaveNotCreatable
   - Default: false
-- NilInstancesFixes: {[Instance.ClassName]=function}
+- NilInstancesFixes: `{[Instance.ClassName]=function}`
   - This can cause some Classes to be fixed even though they might not need the fix (better be safe than sorry though). For example, Bones inherit from Attachment if we don't define them in the NilInstancesFixes then this will catch them anyways. TO AVOID THIS BEHAVIOR USE THIS EXAMPLE: {ClassName_That_Doesnt_Need_Fix = false}.
   - Default: {Animator = function, AdPortal = function, BaseWrap = function, Attachment = function}
-- IgnoreDefaultProperties: boolean
+- IgnoreDefaultProperties: `boolean`
   - Ignores default properties during saving.
   - Aliases: IgnoreDefaultProps
   - Default: true
-- IgnoreNotArchivable: boolean
+- IgnoreNotArchivable: `boolean`
   - Ignores the Archivable property and saves Non-Archivable instances.
   - Aliases: IgnoreArchivable 
   - Default: true
-- IgnorePropertiesOfNotScriptsOnScriptsMode: boolean
+- IgnorePropertiesOfNotScriptsOnScriptsMode: `boolean`
   - Ignores properties of every instance that is not a script in "scripts" mode.
   - Default: false
-- IgnoreSpecialProperties: boolean
+- IgnoreSpecialProperties: `boolean`
   - Prevents calls to gethiddenproperty and uses fallback methods instead. This also helps with crashes. If your file is corrupted after saving, you can try turning this on.
   - Default: false (except on the executors Fluxus, Solara and Delta)
-- IsolateLocalPlayer: boolean
+- IsolateLocalPlayer: `boolean`
   - Saves Children of LocalPlayer as separate folder and prevents any instance of ClassName Player with .Name identical to LocalPlayer.Name from saving.
   - Enables SaveNotCreatable
   - Default: false
-- IsolateStarterPlayer: boolean
+- IsolateStarterPlayer: `boolean`
   - If enabled, StarterPlayer will be cleared and the saved starter player will be placed into folders.
   - Default: false
-- IsolateLocalPlayerCharacter: boolean
+- IsolateLocalPlayerCharacter: `boolean`
   - Saves Children of LocalPlayer.Character as separate folder, and prevents the character from saving in workspace.
   - Enables SaveNotCreatable
   - Default: false
-- RemovePlayerCharacters: boolean
+- RemovePlayerCharacters: `boolean`
   - Ignore player characters while saving.
   - Enables SaveNotCreatable automatically
   - Aliases: SavePlayerCharacters (inverse)
   - Default: true
-- SaveNotCreatable: boolean
+- SaveNotCreatable: `boolean`
   - Includes non-serializable instances as Folder objects (Name is misleading as this is mostly a fix for certain NilInstances and isn't always related to NotCreatable).
   - Default: false
-- NotCreatableFixes: table<Instance.ClassName>
+- NotCreatableFixes: `table<Instance.ClassName>`
   - {"Player"} is the same as {Player = "Folder"}; Format like {SpawnLocation = "Part"} is only to be used when SpawnLocation inherits from "Part" AND "Part" is Creatable.
   - Default: { "", "Player", "PlayerScripts", "PlayerGui", "TouchTransmitter" }
-- IsolatePlayers: boolean
+- IsolatePlayers: `boolean`
   - Saves players in a seperate folder.
   - Enables SaveNotCreatable
-  - Aliases: SavePlayers
+  - Aliases: SavePlayers, RemovePlayers (inverse)
   - Default: false
-- AlternativeWritefile: boolean
+- AlternativeWritefile: `boolean`
   - Splits file content string into segments and writes them using appendfile. This might help with crashes when it starts writing to file. Though there is a risk of appendfile working incorrectly on some executors.
   - Default: true (except on the executors WRD, Xeno, Zorara)
-- IgnoreDefaultPlayerScripts: boolean
+- IgnoreDefaultPlayerScripts: `boolean`
   - Ignores Default PlayerScripts like PlayerModule & RbxCharacterSounds. Prevents crashes on certain Executors.
   - Default: true
-- IgnoreSharedStrings: boolean
+- IgnoreSharedStrings: `boolean`
   - Prevents the value type "SharedString" from saving. Prevents Crashes on some executors.
   - Default: true (except on the executors Wave, Potassium, Zenith, Seliware and Swift, as they are confirmed to support sharedstrings.)
-- SharedStringOverwrite: boolean
+- SharedStringOverwrite: `boolean`
   - SharedStrings can also be used for ValueTypes that aren't SharedString, this behavior is not documented anywhere but makes sense (Could create issues though, due to potential ValueType mix-up, only works on certain types which are all base64 encoded so far).
   - Reason: Allows for potential smaller file size (can also be bigger in some cases).
   - Default: false
-- TreatUnionsAsParts: boolean
+- TreatUnionsAsParts: `boolean`
   - Converts all UnionOperations to Parts. Useful if your Executor isn't able to save (read) Unions, because otherwise they will be invisible.
   - Default: false (except on level 3 executors)
 # Function Documentation
