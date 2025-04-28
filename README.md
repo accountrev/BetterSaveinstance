@@ -25,12 +25,16 @@ synsaveinstance(Options)
 - Option SaveBytecodeIfDecompilerFails
   - Used to exist in old USSI
   - View docs for more info
-  - Default: false 
+  - Default: false
+- Option SaveCompilationErrors
+  - View docs for more info
+  - Default: true
 - Better default executors for many options
   - IgnoreSharedStrings is disabled on Potassium, Seliware, Zenith and Swift.
   - TreatUnionsAsParts is enabled on all level 3 execs.
 - More small changes and fixes
    - Option IsolateLocalPlayerCharacter now isolates as a model instead of a folder. (fixes some rendering issues)
+   - NilInstancesFixes for Dragger and AdvancedDragger, as they prevent the file from opening
 # Universal Syn Save Instance
 
 Or shortly USSI, a project aimed at resurrecting saveinstance function from Synapse X.<br />
@@ -101,6 +105,10 @@ All options are case insensitive.
 - SaveBytecode: `boolean`
   -  Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later.
   -  Default: false
+- SaveCompilationErrors: `boolean`
+  - If a script fails to compile, this option saves the compilation error in the script instead of trying to pass it to the decompiler, which will always result in a fail.
+  - Also applies when decompilation is disabled
+  - Default: true
 - SaveBytecodeIfDecompilerFails: `boolean`
   - Includes bytecode in the output ONLY in these cases: if the decompiler fails (works on most decompilers), if noscripts is enabled, or if the decompiler isn't found. Useful if you wish to be able to decompile it yourself later.
   - Option Savebytecode takes priority over this. 
