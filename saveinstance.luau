@@ -49,7 +49,7 @@ do
 		-- decompile = '(string.find(...,"decomp",nil,true) and string.sub(...,#...) ~= "s")',
 		gethiddenproperty = 'string.find(...,"get",nil,true) and string.find(...,"h",nil,true) and string.find(...,"prop",nil,true) and string.sub(...,#...) ~= "s"',
 		gethui = 'string.find(...,"get",nil,true) and string.find(...,"h",nil,true) and string.find(...,"ui",nil,true)',
-		getcon = 'string.find(...,"get",nil,true) and (string.find(...,"conn",nil,true) or string.find(...,"sig",nil,true)) and string.sub(...,#(...))=="s"',
+		-- getcon = 'string.find(...,"get",nil,true) and (string.find(...,"conn",nil,true) or string.find(...,"sig",nil,true)) and string.sub(...,#(...))=="s"',
 		getnilinstances = 'string.find(...,"nil",nil,true) and string.find(...,"get",nil,true) and string.sub(...,#...) == "s"', -- ! Could match some unwanted stuff
 		getscriptbytecode = 'string.find(...,"get",nil,true) and string.find(...,"bytecode",nil,true)', --  or string.find(...,"dump",nil,true) and string.find(...,"string",nil,true) due to Fluxus (dumpstring returns a function)
 		hash = 'local a={...}local b=a[1]local function c(a,b)return string.find(a,b,nil,true)end;return c(b,"hash")and c(string.lower(tostring(a[2])),"crypt")',
@@ -169,11 +169,6 @@ do -- * Load Region of Déjà Vu
 			end
 
 			table.freeze(bit32)
-		end
-
-		-- TODO Remove later
-		if EXECUTOR_NAME == "Delta" then
-			base64encode = nil
 		end
 
 		-- Credits @Reselim
@@ -744,9 +739,6 @@ XML_Descriptors = {
 	-- ? Roblox uses CDATA only for these (try to prove this wrong): CollisionGroupData, SmoothGrid, MaterialColors, PhysicsGrid
 	-- ! Assuming all base64 encoded strings won't have newlines
 
-	-- ! 7/7/24
-	-- ! Electron v3 'gethiddenproperty' automatically base64 encodes BinaryString values
-
 	BinaryString = function(raw)
 		return raw == "" and "" or base64encode(raw)
 	end,
@@ -938,15 +930,15 @@ XML_Descriptors = {
 	SecurityCapabilities = nil,
 	-- SystemAddress = function(raw) return raw end, -- PeerId?  -- ? Not sure
 	-- TweenInfo = function(raw) -- ? Not sure
-	-- 	local normalize_num = XML_Descriptors.__NORMALIZE_NUMBER
+	-- 	local __NORMALIZE_NUMBER = XML_Descriptors.__NORMALIZE_NUMBER
 	-- 	local enum = XML_Descriptors.__ENUM
 
 	-- 	return "<Time>"
-	-- 		.. normalize_num(raw.Time)
+	-- 		.. __NORMALIZE_NUMBER(raw.Time)
 	-- 		.. "</Time><DelayTime>"
-	-- 		.. normalize_num(raw.DelayTime)
+	-- 		.. __NORMALIZE_NUMBER(raw.DelayTime)
 	-- 		.. "</DelayTime><RepeatCount>"
-	-- 		.. normalize_num(raw.RepeatCount)
+	-- 		.. __NORMALIZE_NUMBER(raw.RepeatCount)
 	-- 		.. "</RepeatCount><Reverses>"
 	-- 		.. XML_Descriptors.bool(raw.Reverses)
 	-- 		.. "</Reverses><EasingDirection>"
@@ -1624,6 +1616,7 @@ local GLOBAL_ENV = getgenv and getgenv() or _G or shared
 --- @field DecompileJobless boolean -- Includes already decompiled code in the output. No new scripts are decompiled. ___Default:___ false
 --- @field SaveBytecode boolean -- Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later. ___Default:___ false
 --- @field SaveBytecodeIfDecompilerFails boolean -- Includes bytecode in the output ONLY in these cases: if decompiler fails, if noscripts is enabled, if decompiler isn't found. Useful if you wish to be able to decompile it yourself later. ___Default:___ false
+--- @field SaveCompilationErrors boolean -- If a script fails to compile, this option saves the compilation error in the script instead of trying to pass it to the decompiler, which will always result in a fail. ___Default:___ true
 --- .DecompileIgnore {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- * Ignores match & it's descendants by default. To Ignore only the instance itself set the value to `= false`. Examples: "Chat", - Matches any instance with "Chat" ClassName, Players = {"MyPlayerName"} - Matches "Players" Class AND "MyPlayerName" Name ONLY, `workspace` - matches Instance by reference, `[workspace] = false` - matches Instance by reference and only ignores the instance itself and not it's descendants. ___Default:___ {TextChatService}
 --- .IgnoreList {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- Structure is similar to **@DecompileIgnore** except `= false` meaning if you ignore one instance it will automatically ignore it's descendants. ___Default:___ {CoreGui, CorePackages}
 --- .ExtraInstances {Instance} -- If used with any invalid mode (like "invalidmode") it will only save these instances. ___Default:___ {}
@@ -1727,6 +1720,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		IgnoreDefaultPlayerScripts = EXECUTOR_NAME ~= "Wave" and true,
 		SaveBytecode = false,
 		SaveBytecodeIfDecompilerFails = false,
+		SaveCompilationErrors = true,
 		IgnoreProperties = {},
 
 		IgnoreList = { "CoreGui", "CorePackages" },
@@ -1749,7 +1743,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		IgnoreDefaultProperties = true,
 		IgnoreNotArchivable = true,
 		IgnorePropertiesOfNotScriptsOnScriptsMode = false,
-		IgnoreSpecialProperties = ArrayToDict({ "Fluxus", "Delta", "Solara" })[EXECUTOR_NAME] or false, -- ! Please submit more Executors that crash on gethiddenproperty (with this disabled basically)
+		IgnoreSpecialProperties = ArrayToDict({ "Fluxus", "Solara" })[EXECUTOR_NAME] or false, -- ! Please submit more Executors that crash on gethiddenproperty (with this disabled basically)
 
 		IsolateLocalPlayer = false, --  #service.StarterGui:GetChildren() == 0
 		IsolateLocalPlayerCharacter = false,
@@ -1775,10 +1769,9 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			"TextSource",
 			"TouchTransmitter",
 		},
-
 		-- ! Risky
 
-		IgnoreSharedStrings = EXECUTOR_NAME ~= "Wave" and EXECUTOR_NAME ~= "Potassium" and EXECUTOR_NAME ~= "Zenith" and EXECUTOR_NAME ~= "Seliware" and EXECUTOR_NAME ~= "Swift",
+		IgnoreSharedStrings = not ArrayToDict({ "Wave", "Zenith", "Swift", "Potassium" })[EXECUTOR_NAME],
 		SharedStringOverwrite = false,
 		TreatUnionsAsParts = EXECUTOR_LEVEL == 3, -- not sure, based on an old discord message from wevn (the owner) that said unions couldn't be saved on level 3 execs. The server has been reset since then, so this can't be proven.
 		AlternativeWritefile = not ArrayToDict({ "WRD", "Xeno", "Zorara" })[EXECUTOR_NAME],
@@ -1848,18 +1841,18 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		-- TODO?:
 		-- DebuggerWatch DebuggerWatch must be a child of ScriptDebugger
 		-- PluginAction Parent of PluginAction must be Plugin or PluginMenu that created it!
-		OPTIONS.NilInstancesFixes.Animator = construct_NilinstanceFix(
-			"Animator has to be placed under Humanoid or AnimationController",
-			"AnimationController"
-		)
-		OPTIONS.NilInstancesFixes.AdPortal = construct_NilinstanceFix("AdPortal must be parented to a Part", "Part")
+		OPTIONS.NilInstancesFixes.Animator = 
+			construct_NilinstanceFix("Animator has to be placed under Humanoid or AnimationController", "AnimationController")
+		OPTIONS.NilInstancesFixes.AdPortal = 
+			construct_NilinstanceFix("AdPortal must be parented to a Part", "Part")
 		OPTIONS.NilInstancesFixes.Attachment =
 			construct_NilinstanceFix("Attachments must be parented to a BasePart or another Attachment", "Part") -- * Bones inherit from Attachments
 		OPTIONS.NilInstancesFixes.BaseWrap =
 			construct_NilinstanceFix("BaseWrap must be parented to a MeshPart", "MeshPart")
 		OPTIONS.NilInstancesFixes.PackageLink =
 			construct_NilinstanceFix("Package already has a PackageLink", "Folder", true)
-
+		OPTIONS.NilInstancesFixes.Dragger = function() return nil end
+		OPTIONS.NilInstancesFixes.AdvancedDragger = function() return nil end
 		if CustomOptions2 and type(CustomOptions2) == "table" then
 			local tmp = CustomOptions
 			local Type = typeof(tmp)
@@ -2277,6 +2270,17 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	if OPTIONS.SaveBytecode then
 		OPTIONS.SaveBytecodeIfDecompilerFails = false
 	end
+	if OPTIONS.SaveCompilationErrors and getscriptbytecode then
+		CompilationError = function(script)
+			local bc = getscriptbytecode(script)
+			if bc then
+				if string.byte(bc, 1, 1) == 0 then -- in scripts that failed to compile, byte 1, the version header (which is 6 is all other cases) is replaced with a null byte. Look a konstant source code for proof.
+					return("-- The script has a compilation error:\n-- "..string.sub(bc, 2)) -- the formatted string for a compilation error. String.sub is to cut off the heading byte.
+				end
+			end		
+		end	
+	end
+	
 	if (OPTIONS.SaveBytecode or OPTIONS.SaveBytecodeIfDecompilerFails) and getscriptbytecode then
 		SaveBytecode = function(script)
 			local s, bytecode = getbytecode(script)
@@ -2288,9 +2292,11 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 	if getscriptbytecode then
 		if (decompile == nil and OPTIONS.decomptype == "") or OPTIONS.decomptype == "custom" then
+			if __DEBUG_MODE then __DEBUG_MODE("Attempting to load Konstant Decompiler. If there is an error/crash after this, set the option decomptype to any string other than custom") end
 			local url = "https://raw.githubusercontent.com/Devraj2010isme/BetterSaveinstance/refs/heads/main/Dependencies/Konstant%20V2.1.luau"
 			local konstant = loadstring(game:HttpGet(url, true))()
 			GLOBAL_ENV.decompile = konstant.decompile
+			if __DEBUG_MODE then __DEBUG_MODE("Konstant Decompiler loaded") end
 		end
 	end
 	do
@@ -2419,8 +2425,6 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				and (category == "Enum" or string_find(result, "Unable to get property " .. propertyName))
 	end
 
-	local IPM_ENABLED = math.huge <= CLIENT_VERSION and IgnoreDefaultProperties -- ! NOT ENABLED YET
-	local IPM_DISABLED = not IPM_ENABLED
 	local __BREAK = "__BREAK" .. service.HttpService:GenerateGUID(false)
 
 	local function ReadProperty(instance, property, propertyName, special, category, optional)
@@ -2673,12 +2677,12 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				if not (IgnorePropertiesOfNotScriptsOnScriptsMode and not isLuaSourceContainer(instance)) then
 					local default_instance, new_def_inst
 
-					if IPM_DISABLED and IgnoreDefaultProperties then
+					if IgnoreDefaultProperties then
 						default_instance = default_instances[ClassName]
 						if not default_instance then
 							local ClassTags = ClassList[ClassName].Tags
 							if not (ClassTags and ClassTags.NotCreatable) then -- __api_dump_class_not_creatable__ also indicates this
-								-- ! NotCreatableFixes are exceptions to the check above meaning if we don't keep the NotCreatableFixes updated then Instance.new below might start erroring in the future potentially; HOWEVER IsPropertyModified solves this issue and no updates are really needed as NotCreatableFixes is up-to-date as of 664 (which is when IPM was enabled)
+								-- ! NotCreatableFixes are exceptions to the check above meaning if we don't keep the NotCreatableFixes updated then Instance.new below might start erroring in the future potentially; HOWEVER IsPropertyModified solves this issue and no updates are really needed as NotCreatableFixes is up-to-date as of VERSION-HERE (which is when IPM gets enabled)
 								new_def_inst = Instance.new(ClassName) -- ! Assuming anything that doesn't have NotCreatable is possible to create (therefore no pcall); EXCEPTION NOTED ABOVE
 
 								default_instance = {}
@@ -2711,18 +2715,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 							continue
 						end
 
-						local Special = Property.Special
-
-						-- if -- ! Not enabled yet (580), uncomment asap once enabled
-
-						-- 	not Special -- TODO: .Special is checked more than once (because it might be updated during ReadProperty)
-						-- 	and not (PropertyName == "Source" and isLuaSourceContainer(instance))
-						-- then -- ? Could be not just "Source" in the future
-						-- 	if not instance:IsPropertyModified(PropertyName) then
-						-- 		continue
-						-- 	end
-						-- end
-						local Category, Optional = Property.Category, Property.Optional
+						local Special, Category, Optional = Property.Special, Property.Category, Property.Optional
 
 						local raw = ReadProperty(instance, Property, PropertyName, Special, Category, Optional)
 
@@ -2884,10 +2877,21 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											then
 												value = "-- [FilteringEnabled] Server Scripts are IMPOSSIBLE to save" -- TODO: Could be not just server scripts in the future
 											else
-												value = ldecompile(instance)
+												local IsCompilationError = false
+												if CompilationError then
+													local CompilationMessage = CompilationError(instance)
+													if CompilationMessage then
+														value = CompilationMessage
+														IsCompilationError = true
+													else
+														value = ldecompile(instance)
+													end	
+												else
+													value = ldecompile(instance)
+												end
 												
-												local DecompilerFailedMessages = {"Failed to decompile", "Something went wrong when decompiling", "Decompilation failed", "Update the decompiling script", "Check decompiling options for errors"} -- Some from Konstant, Oracle and USSI. If you have anymore decompiler errors please submit them.
-												if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode then
+												local DecompilerFailedMessages = {"Failed to decompile", "Something went wrong when decompiling", "Decompilation failed", "Update the decompiling script", "Check decompiling options for errors", "Failed to generate AST"} -- Some from Konstant, Oracle and USSI. If you have anymore decompiler errors please submit them.
+												if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode and not IsCompilationError then
 													for p in next, ArrayToDict(DecompilerFailedMessages) do
 														if string.find(value, p, 1, true) then
 															local bc = SaveBytecode(instance)
@@ -2898,7 +2902,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 														end
 													end
 												end
-												if OPTIONS.SaveBytecode and SaveBytecode then
+												if OPTIONS.SaveBytecode and SaveBytecode and not IsCompilationError then
 													local output = SaveBytecode(instance)
 													if output then
 														value = output .. value
@@ -3072,14 +3076,14 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 						RecoveredScripts
 					) .. "\n" or "")
 					.. [[
-		Thank you for using UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw.
+		Thank you for using BetterSaveinstance (Fork of UniversalSynSaveInstance). Their discord: https://discord.gg/wx4ThpAsmw.
 
 		If you didn't save in Binary (rbxl) - it's recommended to save the game right away to take advantage of the binary format & to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
 		You can do that by going to FILE -> Save to File As -> Make sure File Name ends with .rbxl -> Save
 
 		ServerStorage, ServerScriptService and Server Scripts are IMPOSSIBLE to save because of FilteringEnabled.
 
-		If your player cannot spawn into the game, please move the scripts in StarterPlayer somewhere else. Then run `game:GetService("Players").CharacterAutoLoads = true`.
+		If your player cannot spawn into the game, please move PlayerModule in StarterPlayer somewhere else. Then run `game:GetService("Players").CharacterAutoLoads = true`.
 		And use "Play Here" to start game instead of "Play" to spawn your Character where your Camera currently is.
 
 		If the chat system does not work, please use the explorer and delete everything inside the TextChatService/Chat service(s). 
@@ -3395,10 +3399,9 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		local anti_idle
 		if OPTIONS.AntiIdle then
 			task.spawn(function()
-				local getcon = global_container.getcon
 				local Idled = GetLocalPlayer().Idled
-				if getcon then
-					for _, c in getcon(Idled) do
+				if getconnections then
+					for _, c in getconnections(Idled) do
 						if not pcall(function()
 							c:Disable()
 						end) then
