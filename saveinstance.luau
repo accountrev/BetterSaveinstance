@@ -30,7 +30,11 @@ local function ArrayToDict(t, hydridMode, valueOverride, typeStrict)
 
 	return tmp
 end
-
+if identifyexecutor then
+	if identifyexecutor() == "Krnl" then
+		getgenv().gethiddenproperty = nil -- krnl crashes when gethiddenproperty is called
+	end
+end
 local global_container
 do
 	local filename = "UniversalMethodFinder"
