@@ -2316,7 +2316,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 			if s and bytecode and bytecode ~= "" then
 				if string.byte(bytecode, 1, 1) == 0 then -- in scripts that failed to compile, byte 1, the version header (which is 6 is all other cases) is replaced with a null byte. Look a konstant source code for proof.
-					return("-- The script has a compilation error:\n-- "..string.sub(bc, 2)) -- the formatted string for a compilation error. String.sub is to cut off the heading byte.
+					return("-- The script has a compilation error:\n-- "..string.sub(bytecode, 2)) -- the formatted string for a compilation error. String.sub is to cut off the heading byte.
 				end
 			end		
 		end	
