@@ -66,10 +66,6 @@ local identify_executor = identifyexecutor or getexecutorname or whatexecutor
 
 local EXECUTOR_NAME = identify_executor and identify_executor() or ""
 
-local identify_executor_level = getthreadidentity or getidentity or getthreadcontext
-
-local EXECUTOR_LEVEL = identify_executor_level and identify_executor_level() or ""
-
 -- local cloneref = global_container.cloneref
 local gethiddenproperty = global_container.gethiddenproperty
 
@@ -123,6 +119,35 @@ do -- * Load Region of Déjà Vu
 			end
 		end
 	end
+	
+	--if getspecialinfo and not gethiddenproperty then
+	--	local specialinfoindex = {
+	--		MeshPart = {"PhysicsData", "InitialSize"},
+	--		UnionOperation = {"AssetId", "ChildData", "FormFactor", "InitialSize", "MeshData", "PhysicsData"}, -- MeshData is no longer used, superseded by MeshData2, but ill leave it in. More info: https://devforum.roblox.com/t/research-on-csg/3554504
+	--		Terrain = { "SmoothGrid", "MaterialColors" },
+	--	}
+	--	local function getspecialinfo_benchmark()
+	--		local success, returned = pcall(getspecialinfo, workspace.Terrain)
+	--		if success then
+	--			return true
+	--		end
+	--	end
+	--	if getspecialinfo_benchmark() == true then
+	--		getspecinfo_ghp_fallback = function(instance, propertyName)
+	--			if specialinfoindex[instance.ClassName] and ArrayToDict(specialinfoindex[instance.ClassName])[propertyName] then
+	--				local ok, result = pcall(getspecialinfo, instance)
+	--				if ok then
+	--					return result[propertyName], true
+	--				else
+	--					return "can't get value" -- forces filterPropVal to fail
+	--				end	
+	--			else
+	--				return "can't get value"
+	--			end
+	--		end
+	--	end
+	--end
+	
 	local function benchmark(f1, f2, ...)
 		local ranking = table.create(2)
 		for i, f in { f1, f2 } do
@@ -1724,7 +1749,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			"TextChatService",
 			ModuleScript = nil,
 		},
-		IgnoreDefaultPlayerScripts = EXECUTOR_NAME ~= "Wave" and true,
+		IgnoreDefaultPlayerScripts = not ArrayToDict({ "Wave", "Potassium", "Volcano", "Solara"})[EXECUTOR_NAME],
 		SaveBytecode = false,
 		SaveBytecodeIfDecompilerFails = false,
 		SaveCompilationErrors = true,
@@ -1778,10 +1803,10 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		},
 		-- ! Risky
 
-		IgnoreSharedStrings = not ArrayToDict({ "Wave", "Zenith", "Swift", "Potassium" })[EXECUTOR_NAME],
+		IgnoreSharedStrings = not ArrayToDict({ "Wave", "Zenith", "Swift", "Potassium", "Volcano" })[EXECUTOR_NAME],
 		SharedStringOverwrite = false,
-		TreatUnionsAsParts = EXECUTOR_LEVEL == 3, -- not sure, based on an old discord message from wevn (the owner) that said unions couldn't be saved on level 3 execs. The server has been reset since then, so this can't be proven.
-		AlternativeWritefile = not ArrayToDict({ "WRD", "Xeno", "Zorara" })[EXECUTOR_NAME],
+		TreatUnionsAsParts = ArrayToDict({ "Solara", "Xeno", "WRD", "Zorara", "JJSploit x Xeno" })[EXECUTOR_NAME] or false,
+		AlternativeWritefile = not ArrayToDict({ "WRD", "Xeno", "Zorara", "JJSploit x Xeno" })[EXECUTOR_NAME],
 
 		OptionsAliases = { -- You can't really modify these as a user
 			DecompileTimeout = "timeout",
@@ -1790,6 +1815,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			IgnoreDefaultProps = "IgnoreDefaultProperties",
 			SaveNonCreatable = "SaveNotCreatable",
 			SavePlayers = "IsolatePlayers",
+			IsolatePlayerGui = "IsolateLocalPlayer",
 		},
 	}
 
@@ -2001,7 +2027,11 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 
 	do
-		local mode = string.lower(OPTIONS.mode)
+		local mode = OPTIONS.mode
+		local modetype = type(mode) -- if mode is a table of strings then it is a custom mode
+		if modetype == "string" then
+			mode = string.lower(mode)
+		end
 		local tmp = table.clone(OPTIONS.ExtraInstances)
 
 		local PlaceName = game.PlaceId
@@ -2084,14 +2114,14 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					end
 				end
 			end
-		elseif mode == "optimized" then -- ! Incompatible with .rbxmx (Model file) mode
+		elseif mode == "optimized" or type(mode) == "table" then -- ! Incompatible with .rbxmx (Model file) mode
 			-- if IsolatePlayers then
 			-- 	table.insert(_list_0, "Players")
 			-- end
 			local tmp_dict = ArrayToDict(tmp)
-
-			for _, serviceName in
-				{
+			local ServicesToSave
+			if mode == "optimized" then
+				ServicesToSave = {
 					"Workspace",
 					"Players",
 					"Lighting",
@@ -2117,7 +2147,10 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					-- "TestService",
 					-- "VoiceChatService",
 				}
-			do
+			else
+				ServicesToSave = mode
+			end	
+			for _, serviceName in ServicesToSave do
 				local _service = game:FindService(serviceName)
 				if _service and not tmp_dict[_service] then
 					table.insert(tmp, _service)
@@ -2279,9 +2312,10 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 	if OPTIONS.SaveCompilationErrors and getscriptbytecode then
 		CompilationError = function(script)
-			local bc = getscriptbytecode(script)
-			if bc then
-				if string.byte(bc, 1, 1) == 0 then -- in scripts that failed to compile, byte 1, the version header (which is 6 is all other cases) is replaced with a null byte. Look a konstant source code for proof.
+			local s, bytecode = getbytecode(script)
+
+			if s and bytecode and bytecode ~= "" then
+				if string.byte(bytecode, 1, 1) == 0 then -- in scripts that failed to compile, byte 1, the version header (which is 6 is all other cases) is replaced with a null byte. Look a konstant source code for proof.
 					return("-- The script has a compilation error:\n-- "..string.sub(bc, 2)) -- the formatted string for a compilation error. String.sub is to cut off the heading byte.
 				end
 			end		
@@ -2899,8 +2933,8 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 												
 												local DecompilerFailedMessages = {"Failed to decompile", "Something went wrong when decompiling", "Decompilation failed", "Update the decompiling script", "Check decompiling options for errors", "Failed to generate AST"} -- Some from Konstant, Oracle and USSI. If you have anymore decompiler errors please submit them.
 												if OPTIONS.SaveBytecodeIfDecompilerFails and SaveBytecode and not IsCompilationError then
-													for p in next, ArrayToDict(DecompilerFailedMessages) do
-														if string.find(value, p, 1, true) then
+													for _, v in DecompilerFailedMessages do
+														if string.find(value, v, 1, true) then
 															local bc = SaveBytecode(instance)
 															if bc then
 																value = bc..value
