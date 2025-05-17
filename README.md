@@ -30,8 +30,9 @@ synsaveinstance(Options)
   - View docs for more info
   - Default: true
 - Better default executors for many options
-  - IgnoreSharedStrings is disabled on Potassium, Seliware, Zenith and Swift.
-  - TreatUnionsAsParts is enabled on all level 3 execs.
+- Support for custom modes
+  - Allows for providing a table of service names for the mode option
+  - Works the same as optimized mode, but allows for the changing that hardcoded table.
 - More small changes and fixes
    - Option IsolateLocalPlayerCharacter now isolates as a model instead of a folder. (fixes some rendering issues)
    - NilInstancesFixes for Dragger and AdvancedDragger, as they prevent the file from opening
@@ -79,12 +80,19 @@ All options are case insensitive.
 - Callback: `function`
   - If set, the serialized data will be sent to the callback function instead of to file.
   - Default: false
-- mode: `string`
-  - Valid modes: full, optimized, scripts. Change this to invalid mode like "invalid" if you only want ExtraInstances. "optimized" mode is NOT supported with @Object option.
+- mode: `string or table`
+  - Controls what instances to save.
+  - Valid Modes:
+    - optimized: Saves a hardcoded list of services, best for general use.
+    - full: Saves all services.
+    - scripts: Might be removed soon, don't use this.
+    - To create a custom mode, provide a table of strings with each string being a service name to save.
+  - Change this to invalid mode like "invalid" if you only want ExtraInstances.
+  - "optimized" mode is NOT supported with @Object option.
   - Default: "optimized"
 - noscripts: `boolean`
   - Disables scripts from decompiling.
-  - Aliases: Decompile (inverse)
+  - Aliases: Decompile (inverse, takes priority)
   - Default: false
 - scriptcache: `boolean`
   - Caches decompiled scripts, so if a script with the same bytecode appears in a game multiple times, it only needs to be decompiled once.
@@ -106,7 +114,7 @@ All options are case insensitive.
   -  Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later.
   -  Default: false
 - SaveCompilationErrors: `boolean`
-  - If a script fails to compile, this option saves the compilation error in the script instead of trying to pass it to the decompiler, which will always result in a fail.
+  - If a script fails to compile, this option saves the compilation error in the script instead of trying to pass it to the decompiler (or savebytecode), which will always result in a fail.
   - Also applies when decompilation is disabled
   - Default: true
 - SaveBytecodeIfDecompilerFails: `boolean`
@@ -164,6 +172,7 @@ All options are case insensitive.
 - IsolateLocalPlayer: `boolean`
   - Saves Children of LocalPlayer as separate folder and prevents any instance of ClassName Player with .Name identical to LocalPlayer.Name from saving.
   - Enables SaveNotCreatable
+  - Aliases: IsolatePlayerGui
   - Default: false
 - IsolateStarterPlayer: `boolean`
   - If enabled, StarterPlayer will be cleared and the saved starter player will be placed into folders.
@@ -175,35 +184,37 @@ All options are case insensitive.
 - RemovePlayerCharacters: `boolean`
   - Ignore player characters while saving.
   - Enables SaveNotCreatable automatically
-  - Aliases: SavePlayerCharacters (inverse)
+  - Aliases: SavePlayerCharacters (inverse, takes priority)
   - Default: true
 - SaveNotCreatable: `boolean`
   - Includes non-serializable instances as Folder objects (Name is misleading as this is mostly a fix for certain NilInstances and isn't always related to NotCreatable).
+  - The instances this is applied to is controlled by NotCreatableFixes
   - Default: false
 - NotCreatableFixes: `table<Instance.ClassName>`
+  - The instances to convert using SaveNotCreatable
   - {"Player"} is the same as {Player = "Folder"}; Format like {SpawnLocation = "Part"} is only to be used when SpawnLocation inherits from "Part" AND "Part" is Creatable.
   - Default: { "", "Player", "PlayerScripts", "PlayerGui", "TouchTransmitter" }
 - IsolatePlayers: `boolean`
   - Saves players in a seperate folder.
   - Enables SaveNotCreatable
-  - Aliases: SavePlayers, RemovePlayers (inverse)
+  - Aliases: SavePlayers, RemovePlayers (inverse, takes priority)
   - Default: false
 - AlternativeWritefile: `boolean`
   - Splits file content string into segments and writes them using appendfile. This might help with crashes when it starts writing to file. Though there is a risk of appendfile working incorrectly on some executors.
-  - Default: true (except on the executors WRD, Xeno, Zorara)
+  - Default: true (except on the executors JJSploit, Xeno, Zorara)
 - IgnoreDefaultPlayerScripts: `boolean`
   - Ignores Default PlayerScripts like PlayerModule & RbxCharacterSounds. Prevents crashes on certain Executors.
   - Default: true
 - IgnoreSharedStrings: `boolean`
   - Prevents the value type "SharedString" from saving. Prevents Crashes on some executors.
-  - Default: true (except on the executors Wave, Potassium, Zenith, Seliware and Swift, as they are confirmed to support sharedstrings.)
+  - Default: true (except on the executors Wave, Potassium, Zenith, Seliware, Volcano and Swift, as they are confirmed to support sharedstrings.)
 - SharedStringOverwrite: `boolean`
   - SharedStrings can also be used for ValueTypes that aren't SharedString, this behavior is not documented anywhere but makes sense (Could create issues though, due to potential ValueType mix-up, only works on certain types which are all base64 encoded so far).
   - Reason: Allows for potential smaller file size (can also be bigger in some cases).
   - Default: false
 - TreatUnionsAsParts: `boolean`
   - Converts all UnionOperations to Parts. Useful if your Executor isn't able to save (read) Unions, because otherwise they will be invisible.
-  - Default: false (except on level 3 executors)
+  - Default: false (except on Solara, Xeno, and JJSploit)
 # Function Documentation
 - SynSaveInstance.saveinstance(
   - Parameter_1: `variant<table,table<Instance>>`
