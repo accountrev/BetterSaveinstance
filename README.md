@@ -29,6 +29,9 @@ synsaveinstance(Options)
 - Option SaveCompilationErrors
   - View docs for more info
   - Default: true
+- Support for properties which cannot be saved or loaded by roblox studio (CanSave or CanLoad = false in the api dump)
+  - Works by converting them to attributes
+  - Enabled with the option SaveAsAttributes  
 - Better default executors for many options
 - Support for custom modes
   - Allows for providing a table of service names for the mode option
@@ -121,10 +124,16 @@ All options are case insensitive.
   - Includes bytecode in the output ONLY in these cases: if the decompiler fails (works on most decompilers), if noscripts is enabled, or if the decompiler isn't found. Useful if you wish to be able to decompile it yourself later.
   - Option Savebytecode takes priority over this. 
   - Default: false
+- SaveAsAttributes `boolean`
+  - Saves properties that cannot be saved or loaded by roblox studio (CanSave or CanLoad = false in the api dump) by converting them into attributes.
+  - These properties aren't saved otherwise, but nothing too useful is in them.
+  - Attribute Name Format: Prefix `__NotSaveable_` then the property name with all non alphanumeric characters removed besides underscores.
+  - Default: false
 - DecompileIgnore: `{Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}`
   - Ignores match & its descendants by default. To Ignore only the instance itself set the value to = false. Examples: "Chat", - Matches any instance with "Chat" ClassName, Players = {"MyPlayerName"} - Matches "Players" Class AND "MyPlayerName" Name ONLY, workspace - matches Instance by reference, [workspace] = false - matches Instance by reference and only ignores the instance itself and not its descendants.
   - Default: {TextChatService}
 - IgnoreList: `{Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}`
+  - Prevents instances from saving.
   - Structure is similar to @DecompileIgnore except = false meaning if you ignore one instance it will automatically ignore its descendants.
   - Default: {CoreGui, CorePackages}
 - ExtraInstances: `{Instance}`
@@ -168,7 +177,7 @@ All options are case insensitive.
   - Default: false
 - IgnoreSpecialProperties: `boolean`
   - Prevents calls to gethiddenproperty and uses fallback methods instead. This also helps with crashes. If your file is corrupted after saving, you can try turning this on.
-  - Default: false (except on the executors Fluxus, Solara and Delta)
+  - Default: false (except on the executors Fluxus, Solara, Visual, WRD, and JJSploit x Xeno)
 - IsolateLocalPlayer: `boolean`
   - Saves Children of LocalPlayer as separate folder and prevents any instance of ClassName Player with .Name identical to LocalPlayer.Name from saving.
   - Enables SaveNotCreatable
