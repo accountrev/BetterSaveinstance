@@ -29,16 +29,20 @@ synsaveinstance(Options)
 - Option SaveCompilationErrors
   - View docs for more info
   - Default: true
+- Option Crashlog 
 - Support for properties which cannot be saved or loaded by roblox studio (CanSave or CanLoad = false in the api dump)
   - Works by converting them to attributes
-  - Enabled with the option SaveAsAttributes  
+  - Enabled with the option SaveAsAttributes
+- Support for saving properties of instances with a NotCreatableFix
+  - Works by converting them to attributes
+  - Enabled with the option SavePropsAsAttributesForNotCreatableFixes
 - Better default executors for many options
 - Support for custom modes
   - Allows for providing a table of service names for the mode option
   - Works the same as optimized mode, but allows for the changing that hardcoded table.
 - More small changes and fixes
    - Option IsolateLocalPlayerCharacter now isolates as a model instead of a folder. (fixes some rendering issues)
-   - NilInstancesFixes for Dragger and AdvancedDragger, as they prevent the file from opening
+   - NotCreatableFixes for Dragger and AdvancedDragger, as they prevent the file from opening
 # Universal Syn Save Instance
 
 Or shortly USSI, a project aimed at resurrecting saveinstance function from Synapse X.<br />
@@ -60,6 +64,9 @@ All options are case insensitive.
 - __DEBUG_MODE: `boolean`
   - This will print debug logs to console about unusual scenarios. Recommended to enable if you wish to help us improve our products and find bugs / issues with it!
   - Default: false
+- Crashlog: `boolean`
+  - Logs every instance saved and property read to a file. Useful for debugging crashes.
+  - Default: false
 - ReadMe: `boolean`
   - Includes a script parented to game in the file, containing credits, fixes, and the options used to generate the file.
   - Default: true
@@ -72,10 +79,12 @@ All options are case insensitive.
 - AntiIdle: `boolean`
   - Prevents the 20-minute-Idle Kick.
   - Default: true
-- Anonymous: `boolean`
+- Anonymous: `boolean or table`
   - Cleans the file of any info related to your account like: Name, UserId.
   - This is useful for some games that might store that info in GUIs or other Instances.
   - Might potentially mess up parts of strings that contain characters that match your Name or parts of numbers that match your UserId.
+  - By default this replaces your Name with "Roblox" and UserId with "1".
+  - These replacements can be customized by providing a table with a name and userid. Ex: {Name = "Roblox", UserId = "1"}
   - Default: false
 - ShowStatus: `boolean`
   - Shows what Saveinstance is currently doing in a GUI.
@@ -127,6 +136,7 @@ All options are case insensitive.
 - SaveAsAttributes `boolean`
   - Saves properties that cannot be saved or loaded by roblox studio (CanSave or CanLoad = false in the api dump) by converting them into attributes.
   - These properties aren't saved otherwise, but nothing too useful is in them.
+  - Creates a Configuration instance parented to game that contains game's properties called DataModelProperties.
   - Attribute Name Format: Prefix `__NotSaveable_` then the property name with all non alphanumeric characters removed besides underscores.
   - Default: false
 - DecompileIgnore: `{Instance | Instance.ClassName | [Instance.ClassName]={Instance.Name}}`
@@ -163,7 +173,7 @@ All options are case insensitive.
   - Default: false
 - NilInstancesFixes: `{[Instance.ClassName]=function}`
   - This can cause some Classes to be fixed even though they might not need the fix (better be safe than sorry though). For example, Bones inherit from Attachment if we don't define them in the NilInstancesFixes then this will catch them anyways. TO AVOID THIS BEHAVIOR USE THIS EXAMPLE: {ClassName_That_Doesnt_Need_Fix = false}.
-  - Default: {Animator = function, AdPortal = function, BaseWrap = function, Attachment = function}
+  - Default: {Animator = function, AdPortal = function, Attachment = function, BaseWrap = function, PackageLink = function}
 - IgnoreDefaultProperties: `boolean`
   - Ignores default properties during saving.
   - Aliases: IgnoreDefaultProps
@@ -202,7 +212,13 @@ All options are case insensitive.
 - NotCreatableFixes: `table<Instance.ClassName>`
   - The instances to convert using SaveNotCreatable
   - {"Player"} is the same as {Player = "Folder"}; Format like {SpawnLocation = "Part"} is only to be used when SpawnLocation inherits from "Part" AND "Part" is Creatable.
-  - Default: { "", "Player", "PlayerScripts", "PlayerGui", "TouchTransmitter" }
+  - Default: { "", "AnimationTrack", "Player", "PlayerGui", "PlayerScripts", "PlayerMouse", "ScreenshotHud", "StudioData", "TextSource", "TouchTransmitter", "Dragger", "AdvancedDragger" }
+ - SavePropsAsAttributesForNotCreatableFixes
+   - Converts CanSave/CanLoad properties of instances with a NotCreatableFix which can't be saved otherwise into attributes.
+   - Enables SaveNotCreatable
+   - Doesn't save properties when they are already saved normally. (Ex: In the spawnlocation example above, only properties that only apply to the spawnlocation, not the part will be saved)
+   - Attribute Name Format: Same as SaveAsAttributes but with the prefix `__NotCreatableFix_`.
+   - Default: false
 - IsolatePlayers: `boolean`
   - Saves players in a seperate folder.
   - Enables SaveNotCreatable
@@ -216,7 +232,7 @@ All options are case insensitive.
   - Default: true
 - IgnoreSharedStrings: `boolean`
   - Prevents the value type "SharedString" from saving. Prevents Crashes on some executors.
-  - Default: true (except on the executors Wave, Potassium, Zenith, Seliware, Volcano and Swift, as they are confirmed to support sharedstrings.)
+  - Default: true (except on the executors Wave, Potassium, Zenith, Seliware, Volcano, Velocity and Swift, as they are confirmed to support sharedstrings.)
 - SharedStringOverwrite: `boolean`
   - SharedStrings can also be used for ValueTypes that aren't SharedString, this behavior is not documented anywhere but makes sense (Could create issues though, due to potential ValueType mix-up, only works on certain types which are all base64 encoded so far).
   - Reason: Allows for potential smaller file size (can also be bigger in some cases).
