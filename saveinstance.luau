@@ -2452,6 +2452,8 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			end)
 
 			task.spawn(function()
+				task.wait(1)
+
 				local ok, result = pcall(f, script)
 
 				if isCancelled then
