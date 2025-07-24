@@ -2436,7 +2436,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 
 	local function construct_TimeoutHandler(timeout, f, timeout_ret)
-		task.wait(1)
+		wait(1)
 		return timeout < 0 and function(script)
 			return pcall(f, script)
 		end or function(script) -- TODO Ideally use ... (vararg) instead of `script` in case this is reused for something other than `decompile` & `getscriptbytecode`
@@ -2536,7 +2536,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				return output
 			end
 		elseif Decompiler then
-			task.wait(1)
+			wait(1)
 			
 			local decomp = construct_TimeoutHandler(Timeout, Decompiler, "Decompiler timed out")
 
