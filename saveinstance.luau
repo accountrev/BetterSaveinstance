@@ -2535,6 +2535,8 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				return output
 			end
 		elseif Decompiler then
+			task.wait(1)
+			
 			local decomp = construct_TimeoutHandler(Timeout, Decompiler, "Decompiler timed out")
 
 			ldecompile = function(script)
